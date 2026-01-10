@@ -1,0 +1,8 @@
+# База данных.
+src/database/users.db
+
+# Системное.
+.venv/
+.env
+
+__pycache__/
