@@ -6,4 +6,3 @@ apscheduler
 aiosqlite
 aiohttp
 geopy
-dataclasses

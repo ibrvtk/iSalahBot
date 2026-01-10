@@ -11,7 +11,7 @@ BOT = Bot(
     token=TOKEN,
     default=DefaultBotProperties(parse_mode='HTML')
 )
-DEVELOPER_ID=getenv('DEVELOPER_ID')
+DEVELOPER_ID=getenv('DEVELOPER_ID', None)
 
-DB_DB=getenv('DB_DB')
-DB_SQL=getenv('DB_SQL')
+DB_DB=getenv('DB_DB', "src/database/users.db")
+DB_SQL=getenv('DB_SQL', "src/database/scheme.sql")
