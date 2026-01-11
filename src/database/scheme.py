@@ -63,7 +63,7 @@ async def db_set_stage(user_id: int, stage: str) -> None:
         print(f"error: database: db_set_stage(): {e}")
 
 
-async def db_read_user(arr, sql_from: str, sql_where: str = "user_id", sql_select: str = "*", return_boolean: bool = False) -> dict | bool | None:
+async def db_read_user(arr, sql_from: str, sql_where: str = "user_id", sql_select: str = "*", return_boolean: bool = False) -> list | bool | None:
     '''
     * `arr` — требуемое значение параметра `sql_where`;
     * `sql_from` — в какой таблице нужно произвести операцию;
@@ -92,15 +92,16 @@ async def db_read_user(arr, sql_from: str, sql_where: str = "user_id", sql_selec
         print(f"error: database: db_read_user(): {e}")
         return None
 
-async def db_get_all_users() -> dict:
+async def db_get_all_users() -> list:
     try:
         async with connect(DB_DB) as db:
-            async with db.execute(f"SELECT user_id FROM general",) as cursor:
-                return await cursor.fetchone()
+            async with db.execute("SELECT user_id FROM general",) as cursor:
+                rows = await cursor.fetchall()
+                return [row[0] for row in rows]
 
     except Exception as e:
-        print(f"error: database: db_read_user(): {e}")
-        return None
+        print(f"error: database: db_get_all_users(): {e}")
+        return []
 
 async def db_update_user(arr_set, arr_where, sql_update: str, sql_set: str, sql_where: str) -> None:
     '''
