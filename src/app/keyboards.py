@@ -25,8 +25,9 @@ async def kb_check_salah(salah_key: str) -> InlineKeyboardBuilder:
 
 
 kb_menu = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text="📅 Расписание на сегодня")],
     [KeyboardButton(text="⚙️ Настройки")],
-    [KeyboardButton(text="📅 Расписание на сегодня"), KeyboardButton(text="📊 Статистика выполнения")],
+    [KeyboardButton(text="📊 Статистика выполнения"), KeyboardButton(text="📊 Общая статистика")],
     [KeyboardButton(text="👥 Добавить в группу")]
 ],
 resize_keyboard=True,

@@ -179,6 +179,14 @@ async def cb_check_salah(callback: CallbackQuery) -> None:
                 sql_where="user_id"
             )
 
+    await db_update_user(
+        arr_set=1,
+        arr_where=user_id,
+        sql_update="salah",
+        sql_set=salah_key,
+        sql_where="user_id"
+    )
+
     salah_name = salah_names.get(salah_key)
     # bot = await BOT.get_me()
     completed_emoji = choice(["👍", "👏", "🙏", "🤲"])

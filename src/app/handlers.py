@@ -1,18 +1,18 @@
-
 from aiogram import Router, F
 from aiogram.types import Message, LinkPreviewOptions
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
+from aiogram.filters.command import CommandObject
 
 from pytz import timezone
 from datetime import datetime
 from timezonefinder import TimezoneFinder
 
-from config import BOT
-from database import db_read_user, db_set_stage
+from config import BOT, DEVELOPER_ID
+from database import db_read_user, db_get_all_users, db_set_stage
 from app.data import stages, UserCity, Registration, registration_data, salah_names, salah_emojis, month_map
 from app.utils import get_location, get_pray_times, reply_need_register
-from app.keyboards import kb_yesno, kb_settings_pg1
+from app.keyboards import kb_menu, kb_yesno, kb_settings_pg1
 
 
 RT = Router()
@@ -156,8 +156,58 @@ async def cmd_chart(message: Message) -> None:
         print(f"error: app/handlers.py: cmd_chart(): {e}")
         await message.answer("Произошла непредвиденная ошибка. Попробуйте позже.")
 
+
 @RT.message(F.text == "📊 Статистика выполнения")
-async def cmd_statistics(message: Message) -> None:
+async def cmd_salah_statistics(message: Message) -> None:
+    user_id = message.from_user.id
+
+    user_data = await db_read_user(
+        arr=user_id,
+        sql_from="general",
+        sql_select="timezone_str"
+    )
+
+    if not user_data:
+        return await reply_need_register(message)
+
+    user_settings = await db_read_user(
+        arr=user_id,
+        sql_from="settings",
+        sql_select="statistics, ishraq"
+    )
+
+    if user_settings[0] == 1:
+        return message.reply("<b>Вы отключили ведение статистики.</b> Включить обратно можно в настройках.")
+
+    raw_user_salah = await db_read_user(
+        arr=user_id,
+        sql_from="salah"
+    )
+    user_salah = list(raw_user_salah)
+
+    for i in range(9):
+        user_salah[i] = "✅" if user_salah[i] == 1 else "❌"
+
+    user_timezone = timezone(user_data[0])
+    now = datetime.now(user_timezone)
+    text_ishraq = f"{user_salah[3]} {salah_names['ishraq']}\n" if user_settings[1] == 0 else ""
+    text_zuhr = f"{user_salah[8]} {salah_names['jumuah']}\n" if datetime.now().weekday() == 4 else f"{user_salah[4]} {salah_names['zuhr']}\n"
+    bot = await BOT.get_me()
+    text = (
+         "📊 <b>Ваша статистика выполнения на сегодня</b>\n"
+        f"<i>{now.day} {month_map[now.month]} {now.year} год</i>\n\n"
+        f"{user_salah[1]} {salah_names['fajr']}\n"
+        f"{text_ishraq}"
+        f"{text_zuhr}"
+        f"{user_salah[5]} {salah_names['asr']}\n"
+        f"{user_salah[6]} {salah_names['maghrib']}\n"
+        f"{user_salah[7]} {salah_names['isha']}\n\n"
+        f"<b>@{bot.username}</b>"
+    )
+    await message.answer(text)
+
+@RT.message(F.text == "📊 Общая статистика")
+async def cmd_general_statistics(message: Message) -> None:
     user_id = message.from_user.id
     
     user_data = await db_read_user(
@@ -182,11 +232,10 @@ async def cmd_statistics(message: Message) -> None:
     registration_date = datetime.fromtimestamp(user_data[1], user_timezone)
     registration_date = registration_date.strftime("%d.%m.%Y %H:%M")
     
+    text_ishraq = f"📿 Выполнено {salah_names['ishraq']}: <code>{user_data[3]}</code>\n" if user_settings[1] == 0 else ""
     bot = await BOT.get_me()
-    user_settings_ishraq = user_settings[1]
-    text_ishraq = f"📿 Выполнено {salah_names['ishraq']}: <code>{user_data[3]}</code>\n" if user_settings_ishraq == 0 else ""
     text = (
-         "📊 <b>Ваша статистика по отмеченным салятам</b>\n"
+         "📊 <b>Ваша общая статистика по всем салятам</b>\n"
         f"<i>Дата регистрации в боте: {registration_date}</i>\n\n"
         f"✅ Выполнено Фард: <code>{user_data[2]}</code>\n"
         f"❌ Пропущено Фард: <code>{user_data[5]}</code>\n"
@@ -223,8 +272,33 @@ async def cmd_developer_info(message: Message):
         text=(
             "<b>Разработчик кода</b>: @ibrvtk | <a href='https://github.com/ibrvtk'>GitHub</a> | <a href='https://ibrvtk.site'>Сайт</a>\n"
             "<b>Автор Description анимации:</b> @angelsky1337\n\n"
-            "Для определения времени намазов использовался <a href='https://aladhan.com/prayer-times-api'>Aladhan API</a>."
+            "Для определения времени намазов использовался <a href='https://aladhan.com/prayer-times-api'><b>Aladhan API</b></a>.\n"
             "<a href='https://github.com/ibrvtk/iSalahBot'>🐈‍⬛ <b>GitHub Бота</b></a> <i>(full open-source)</i>"
         ),
         link_preview_options=bot_github
+    )
+
+
+@RT.message(Command("echo"), F.from_user.id == DEVELOPER_ID)
+async def cmd_echo(message: Message, command: CommandObject):
+    args = command.args
+
+    if args is None:
+        return await message.delete()
+
+    msg = await message.reply("⏱️")
+
+    users_id = await db_get_all_users()
+
+    for user_id in users_id:
+            await BOT.send_message(
+                chat_id=user_id,
+                text=args,
+                reply_markup=kb_menu
+            )
+
+    await BOT.edit_message_text(
+        chat_id=message.from_user.id,
+        message_id=msg.message_id,
+        text="✅"
     )
