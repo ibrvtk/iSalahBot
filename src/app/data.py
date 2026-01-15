@@ -4,44 +4,20 @@ from dataclasses import dataclass
 
 
 
-stages = {
-    "none": 0,
-    "registration": 1,
-    "settings_rmstat": 2,
-    "settings_rmrf": 3
-}
-
-
 class UserCity(StatesGroup):
     city = State()
 
 @dataclass
-class Registration():
+class RegistrationDataclass():
     user_id: int
     city: str = None
     timezone_str: str = None
     lng: float = None
     lat: float = None
+    language: str = None
 
 registration_data = {}
 
-
-# @dataclass
-# class TodaySalah():
-#     fajr: 
-
-
-salah_names = {
-    "fajr": "Фаджр",
-    "shuruq": "Шурук",
-    "ishraq": "Ишрак",
-    "zuhr": "Зухр",
-    "asr": "Аср",
-    "maghrib": "Магриб",
-    "isha": "Иша",
-    "jumuah": "Джума",
-    "shuruqru": "Восход",
-}
 
 salah_emojis = {
     "fajr": "🌅",
@@ -56,8 +32,11 @@ salah_emojis = {
 
 
 month_map = {
-    1: "января", 2: "февраля", 3: "марта", 4: "апреля",
-    5: "мая", 6: "июня", 7: "июля", 8: "августа",
-    9: "сентября", 10: "октября", 11: "ноября", 12: "декабря",
-    1488: "Агарта"
+    "1-ru": "января", "2-ru": "февраля", "3-ru": "марта", "4-ru": "апреля",
+    "5-ru": "мая", "6-ru": "июня", "7-ru": "июля", "8-ru": "августа",
+    "9-ru": "сентября", "10-ru": "октября", "11-ru": "ноября", "12-ru": "декабря",
+
+    "1-en": "January", "2-en": "February", "3-en": "March", "4-en": "April",
+    "5-en": "May", "6-en": "July", "7-en": "June", "8-en": "August",
+    "9-en": "September", "10-en": "October", "11-en": "November", "12-en": "December",
 }

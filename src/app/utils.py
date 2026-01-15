@@ -7,6 +7,7 @@ from geopy.geocoders import Nominatim
 
 from config import BOT
 from database import db_read_user
+from app.localization import phrases
 
 
 GEOLOCATOR = Nominatim(user_agent="telegram_bot-iSalahBot")
@@ -73,8 +74,9 @@ async def get_pray_times(user_id: int, lng: float, lat: float) -> dict:
 
 
 async def reply_need_register(message: Message):
+    l_code = message.from_user.language_code
     bot = await BOT.get_me()
     await message.reply(
-        text=f"Валидная команда, но сначала нужно <a href='https://t.me/{bot.username}?start=retry'>зарегистрироваться</a>.",
+        text=f"{phrases[f'validCommandBut-{l_code}']} <a href='https://t.me/{bot.username}?start=retry'>{phrases[f'register-{l_code}']}</a>.",
         disable_web_page_preview=True
     )
