@@ -17,72 +17,7 @@ async def db_create_database() -> None:
         print(f"error: database: db_create_database(): {e}")
 
 
-async def db_create_user(user_id: int) -> None:
-    try:
-        async with connect(DB_DB) as db:
-            await db.execute("INSERT OR IGNORE INTO general (user_id) VALUES (?)", (user_id,))
-            await db.execute("INSERT OR IGNORE INTO salah (user_id) VALUES (?)", (user_id,))
-            await db.execute("INSERT OR IGNORE INTO settings (user_id) VALUES (?)", (user_id,))
-            await db.commit()
-            
-    except Exception as e:
-        print(f"error: database: db_create_user(): {e}")
-
-async def db_read_user(arr, sql_from: str, sql_where: str = "user_id", sql_select: str = "*", return_boolean: bool = False) -> list | bool | None:
-    '''
-    * `arr` — требуемое значение параметра `sql_where`;
-    * `sql_from` — в какой таблице нужно произвести операцию;
-    * `sql_where` — какой параметр нужно прочитать. По умолчанию "user_id" *(т. к. PRIMARY KEY)*;
-    * `sql_select` — какие параметры нужно вернуть? По умолчанию "\*" *(вернёт все)*;
-    * `return_boolean` — если True, то вернёт факт наличия человека в таблице *(True если он там есть. Иначе False)*.
-    Требует только параметры `arr` и `sql_from`.
-    По умолчанию False.
-    '''
-    try:
-        async with connect(DB_DB) as db:
-            if not return_boolean:
-                async with db.execute(f"SELECT {sql_select} FROM {sql_from} WHERE {sql_where} = ?", (arr,)) as cursor:
-                    return await cursor.fetchone()
-            
-            else:
-                async with db.execute(f"SELECT user_id FROM {sql_from} WHERE user_id = ?", (arr,)) as cursor:
-                    user_data = await cursor.fetchone()
-
-                    if not user_data:
-                        return False
-                    else:
-                        return True
-
-    except Exception as e:
-        print(f"error: database: db_read_user(): {e}")
-        return None
-
-async def db_update_user(arr_set, arr_where, sql_update: str, sql_set: str, sql_where: str = "user_id") -> None:
-    '''
-    * `arr_set` — требуемое значение параметра `sql_set`;
-    * `arr_where` — требуемое значение параметра `sql_where`;
-    * `sql_update` — в какой таблице нужно произвести операцию;
-    * `sql_set` — какой параметр нужно обновить;
-    * `sql_where` — обновить всех, у кого `sql_where` равен `arr_where`. По умолчанию "user_id" *(т. к. PRIMARY KEY)*;
-    '''
-    try:
-        async with connect(DB_DB) as db:
-            await db.execute(f"UPDATE {sql_update} SET {sql_set} = ? WHERE {sql_where} = ?", (arr_set, arr_where))
-            await db.commit()
-
-    except Exception as e:
-        print(f"error: database: db_update_user(): {e}")
-
-async def db_delete_user(user_id: int) -> None:
-    async with connect(DB_DB) as db:
-        await db.execute("DELETE FROM general WHERE user_id = ?", (user_id,))
-        await db.execute("DELETE FROM salah WHERE user_id = ?", (user_id,))
-        await db.execute("DELETE FROM settings WHERE user_id = ?", (user_id,))
-        await db.execute("DELETE FROM stage WHERE user_id = ?", (user_id,))
-        await db.commit()
-
-
-async def db_register_user(user_id: int, city: str, timezone_str: str, lng: float, lat: float, language: str) -> None:
+async def db_create_user(user_id: int, city: str, timezone_str: str, lng: float, lat: float, language: str) -> None:
     try:
         async with connect(DB_DB) as db:
             await db.execute("INSERT OR IGNORE INTO general (user_id) VALUES (?)", (user_id,))
@@ -104,7 +39,70 @@ async def db_register_user(user_id: int, city: str, timezone_str: str, lng: floa
             await db.commit()
 
     except Exception as e:
-        print(f"error: database: db_register_user(): {e}")
+        print(f"error: database: db_create_user(): {e}")
+
+async def db_read(arr, sql_from: str, sql_where: str = "user_id", sql_select: str = "*", user_is_in_db: bool = False) -> list | bool | None:
+    '''
+    `SELECT {sql_select} FROM {sql_from} WHERE {sql_where} = ?(arr)`
+    
+    :param arr: Required value of the `sql_where` parameter
+    :type arr: Any
+    :param sql_from: In which table the operation needs to be performed
+    :type sql_from: str
+    :param sql_where: Which parameter needs to be read. By default, `user_id` *(because `PRIMARY KEY`)*
+    :type sql_where: str
+    :param sql_select: What parameters should be returned? By default, `*` *(will return everything)*
+    :type sql_select: str
+    :param user_is_in_db: If `True`, it will return the fact that a **user or chat** is in the table *(`True` if he is there. Otherwise `False`)*
+    :type user_is_in_db: bool
+    '''
+    try:
+        async with connect(DB_DB) as db:
+            if not user_is_in_db:
+                async with db.execute(f"SELECT {sql_select} FROM {sql_from} WHERE {sql_where} = ?", (arr,)) as cursor:
+                    return await cursor.fetchone()
+
+            else:
+                async with db.execute(f"SELECT user_id FROM {sql_from} WHERE user_id = ?", (arr,)) as cursor:
+                    user_data = await cursor.fetchone()
+
+                    if not user_data:
+                        return False
+                    else:
+                        return True
+
+    except Exception as e:
+        print(f"error: database: db_read(): {e}")
+        return None
+
+async def db_update(arr_set, arr_where, sql_update: str, sql_set: str, sql_where: str = "user_id") -> None:
+    '''
+    `UPDATE {sql_update} SET {sql_set} = ?(arr_set) WHERE {sql_where} = ?(arr_where)`
+    
+    :param arr_set: Required value of the `sql_set` parameter
+    :type arr_set: Any
+    :param arr_where: Required value of the `sql_where` parameter
+    :type arr_where: Any
+    :param sql_update: In which table the operation needs to be performed
+    :type sql_update: str
+    :param sql_set: Which parameter needs to be updated
+    :type sql_set: str
+    :param sql_where: update all those with `sql_where` equal to `arr_where`. By default, `id` *(because `PRIMARY KEY`)*
+    :type sql_where: str
+    '''
+    try:
+        async with connect(DB_DB) as db:
+            await db.execute(f"UPDATE {sql_update} SET {sql_set} = ? WHERE {sql_where} = ?", (arr_set, arr_where))
+            await db.commit()
+
+    except Exception as e:
+        print(f"error: database: db_update(): {e}")
+
+async def db_delete_user(user_id: int) -> None:
+    async with connect(DB_DB) as db:
+        await db.execute("DELETE FROM general WHERE user_id = ?", (user_id,))
+        await db.commit()
+
 
 async def db_get_all_users() -> list:
     try:
@@ -118,7 +116,7 @@ async def db_get_all_users() -> list:
         return []
 
 async def db_get_language(user_id: int) -> str:
-    user_data = await db_read_user(
+    user_data = await db_read(
         arr=user_id,
         sql_from="settings",
         return_boolean=True
@@ -159,6 +157,7 @@ async def db_rmstat(user_id: int):
                 SET completed = 0, completed_ishraq = 0, completed_jumuah = 0, missed = 0, missed_jumuah = 0
                 WHERE user_id = ?
             """, (user_id,))
+            await db.execute("INSERT OR IGNORE INTO salah (user_id) VALUES (?)", (user_id,))
             await db.commit()
 
     except Exception as e:

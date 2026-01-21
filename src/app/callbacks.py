@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 
 from random import choice
 
-from database import db_read_user, db_update_user, db_delete_user, db_register_user, db_get_language, db_set_stage, db_rmstat
+from database import db_create_user, db_read_user, db_update_user, db_delete_user, db_get_language, db_set_stage, db_rmstat
 from app.data import UserCity, registration_data
 from app.keyboards import kb_yesno, kb_menu, kb_settings_pg1, kb_settings_pg2
 from app.localization import phrases
@@ -32,7 +32,7 @@ async def cb_yesno(callback: CallbackQuery, state: FSMContext) -> None:
                 if user_id in registration_data:
                     l_code = registration_data[user_id].language
 
-                    await db_register_user(
+                    await db_create_user(
                         user_id=user_id,
                         city=registration_data[user_id].city,
                         timezone_str=registration_data[user_id].timezone_str,
