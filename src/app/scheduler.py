@@ -4,7 +4,7 @@ from aiosqlite import connect
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from config import BOT, DB_DB
-from database import db_update_user
+from database import db_update
 from app.data import salah_emojis
 from app.utils import get_pray_times
 from app.keyboards import kb_check_salah
@@ -136,7 +136,7 @@ async def check_and_notify():
                             )
                             if settings_statistics == 0:
                                 new_missed_jumuah = old_missed_jumuah + 1
-                                await db_update_user(
+                                await db_update(
                                     arr_set=new_missed_jumuah,
                                     arr_where=uid,
                                     sql_update="general",
@@ -155,7 +155,7 @@ async def check_and_notify():
                     if salah_key not in ("shuruq", "ishraq", "jumuah"):
                         if settings_statistics == 0:
                             new_missed = old_missed + 1
-                            await db_update_user(
+                            await db_update(
                                 arr_set=new_missed,
                                 arr_where=uid,
                                 sql_update="general",

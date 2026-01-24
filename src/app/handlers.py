@@ -9,7 +9,7 @@ from datetime import datetime
 from timezonefinder import TimezoneFinder
 
 from config import BOT, DEVELOPER_ID
-from database import db_read_user, db_get_all_users, db_get_language, db_set_stage
+from database import db_read, db_get_all_users, db_get_language, db_set_stage
 from app.data import UserCity, RegistrationDataclass, registration_data, salah_emojis, month_map
 from app.utils import get_location, get_pray_times, reply_need_register
 from app.keyboards import kb_yesno, kb_language, kb_menu, kb_settings_pg1
@@ -25,7 +25,7 @@ TZF = TimezoneFinder()
 async def cmd_start(message: Message) -> None:
     user_id = message.from_user.id
 
-    user_data = await db_read_user(
+    user_data = await db_read(
         arr=user_id,
         sql_from="general",
         return_boolean=True
@@ -93,7 +93,7 @@ async def cmd_chart(message: Message) -> None:
     l_code = await db_get_language(user_id)
 
     try:
-        user_data = await db_read_user(
+        user_data = await db_read(
             arr=user_id,
             sql_from="general",
             sql_select="city, timezone_str, lng, lat"
@@ -102,7 +102,7 @@ async def cmd_chart(message: Message) -> None:
         if not user_data:
             return await reply_need_register(message)
 
-        user_settings = await db_read_user(
+        user_settings = await db_read(
             arr=user_id,
             sql_from="settings",
             sql_select="ishraq, shuruq"
@@ -116,7 +116,7 @@ async def cmd_chart(message: Message) -> None:
         shuruq_name = phrases[f'shuruq-{l_code}'] if user_settings[1] == 0 else phrases[f'shuruqLocal-{l_code}']
         text_ishraq = f"{salah_emojis['ishraq']} {phrases[f"ishraq-{l_code}"]} <i>({phrases[f'nafl-{l_code}']})</i>: <code>{pray_times['ishraq']}</code>\n" if user_settings[0] == 0 else ""
         zuhr_name = f"{salah_emojis['jumuah']} {phrases[f'jumuah-{l_code}']}" if now.weekday() == 4 else f"{salah_emojis['zuhr']} {phrases[f'zuhr-{l_code}']}"
-        madhab = await db_read_user(
+        madhab = await db_read(
             arr=user_id,
             sql_from="settings",
             sql_select="madhab"
@@ -153,7 +153,7 @@ async def cmd_salah_statistics(message: Message) -> None:
     user_id = message.from_user.id
     l_code = await db_get_language(user_id)
 
-    user_data = await db_read_user(
+    user_data = await db_read(
         arr=user_id,
         sql_from="general",
         sql_select="timezone_str"
@@ -162,7 +162,7 @@ async def cmd_salah_statistics(message: Message) -> None:
     if not user_data:
         return await reply_need_register(message)
 
-    user_settings = await db_read_user(
+    user_settings = await db_read(
         arr=user_id,
         sql_from="settings",
         sql_select="statistics, ishraq"
@@ -171,7 +171,7 @@ async def cmd_salah_statistics(message: Message) -> None:
     if user_settings[0] == 1:
         return message.reply(phrases[f'statisticsIsOff-{l_code}'])
 
-    raw_user_salah = await db_read_user(
+    raw_user_salah = await db_read(
         arr=user_id,
         sql_from="salah"
     )
@@ -204,7 +204,7 @@ async def cmd_general_statistics(message: Message) -> None:
     user_id = message.from_user.id
     l_code = await db_get_language(user_id)
     
-    user_data = await db_read_user(
+    user_data = await db_read(
         arr=user_id,
         sql_from="general",
         sql_select="timezone_str, registration_date, completed, completed_ishraq, completed_jumuah, missed, missed_jumuah"
@@ -213,7 +213,7 @@ async def cmd_general_statistics(message: Message) -> None:
     if not user_data:
         return await reply_need_register(message)
 
-    user_settings = await db_read_user(
+    user_settings = await db_read(
         arr=user_id,
         sql_from="settings",
         sql_select="statistics, ishraq, salah"
@@ -248,7 +248,7 @@ async def cmd_settings(message: Message) -> None:
     user_id = message.from_user.id
     l_code = await db_get_language(user_id)
 
-    user_data = await db_read_user(
+    user_data = await db_read(
         arr=user_id,
         sql_from="general",
         return_boolean=True
@@ -268,7 +268,7 @@ async def cmd_add_to_group(message: Message) -> None:
     user_id = message.from_user.id
     l_code = await db_get_language(user_id)
     
-    user_data = await db_read_user(
+    user_data = await db_read(
         arr=user_id,
         sql_from="general",
         return_boolean=True

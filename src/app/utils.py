@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from geopy.geocoders import Nominatim
 
 from config import BOT
-from database import db_read_user
+from database import db_read
 from app.localization import phrases
 
 
@@ -39,7 +39,7 @@ async def get_pray_times(user_id: int, lng: float, lat: float) -> dict:
         * `1` - Ханафи
         * `0` - Шафии, Малики, Ханбали
     '''
-    madhab = await db_read_user(
+    madhab = await db_read(
         arr=user_id,
         sql_from="settings",
         sql_select="madhab"

@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 
 from random import choice
 
-from database import db_create_user, db_read_user, db_update_user, db_delete_user, db_get_language, db_set_stage, db_rmstat
+from database import db_create_user, db_read, db_update, db_delete_user, db_get_language, db_set_stage, db_rmstat
 from app.data import UserCity, registration_data
 from app.keyboards import kb_yesno, kb_menu, kb_settings_pg1, kb_settings_pg2
 from app.localization import phrases
@@ -18,7 +18,7 @@ RT = Router()
 async def cb_yesno(callback: CallbackQuery, state: FSMContext) -> None:
     user_id = callback.from_user.id
     l_code = await db_get_language(user_id)
-    stage = await db_read_user(
+    stage = await db_read(
         arr=user_id,
         sql_from="stage"
     )
@@ -120,7 +120,7 @@ async def cb_check_salah(callback: CallbackQuery) -> None:
 
     match salah_key:
         case "ishraq":
-            user_data = await db_read_user(
+            user_data = await db_read(
                 arr=user_id,
                 sql_from="general",
                 sql_select="completed_ishraq"
@@ -129,14 +129,14 @@ async def cb_check_salah(callback: CallbackQuery) -> None:
             old_ishraq = user_data[0]
             new_ishraq = old_ishraq + 1
 
-            await db_update_user(
+            await db_update(
                 arr_set=new_ishraq,
                 arr_where=user_id,
                 sql_update="general",
                 sql_set="completed_ishraq"
             )
         case "jumuah":
-            user_data = await db_read_user(
+            user_data = await db_read(
                 arr=user_id,
                 sql_from="general",
                 sql_select="completed_jumuah, missed_jumuah"
@@ -147,20 +147,20 @@ async def cb_check_salah(callback: CallbackQuery) -> None:
             old_missed_jumuah = user_data[1]
             new_missed_jumuah = old_missed_jumuah - 1
 
-            await db_update_user(
+            await db_update(
                 arr_set=new_completed_jumuah,
                 arr_where=user_id,
                 sql_update="general",
                 sql_set="completed_jumuah"
             )
-            await db_update_user(
+            await db_update(
                 arr_set=new_missed_jumuah,
                 arr_where=user_id,
                 sql_update="general",
                 sql_set="missed_jumuah"
             )
         case _:
-            user_data = await db_read_user(
+            user_data = await db_read(
                 arr=user_id,
                 sql_from="general",
                 sql_select="completed, missed"
@@ -171,27 +171,27 @@ async def cb_check_salah(callback: CallbackQuery) -> None:
             old_missed = user_data[1]
             new_missed = old_missed - 1
 
-            await db_update_user(
+            await db_update(
                 arr_set=new_completed,
                 arr_where=user_id,
                 sql_update="general",
                 sql_set="completed"
             )
-            await db_update_user(
+            await db_update(
                 arr_set=new_missed,
                 arr_where=user_id,
                 sql_update="general",
                 sql_set="missed"
             )
 
-    await db_update_user(
+    await db_update(
         arr_set=1,
         arr_where=user_id,
         sql_update="salah",
         sql_set=salah_key
     )
 
-    user_settings = await db_read_user(
+    user_settings = await db_read(
         arr=user_id,
         sql_from="settings",
         sql_select="salah"
@@ -213,7 +213,7 @@ async def cb_settings(callback: CallbackQuery) -> None:
     option = callback.data.split("_")[1]
     l_code = await db_get_language(user_id)
 
-    user_data = await db_read_user(
+    user_data = await db_read(
         arr=user_id,
         sql_from="settings"
     )
@@ -221,7 +221,7 @@ async def cb_settings(callback: CallbackQuery) -> None:
     match option:
         case "madhab":
             arr_set = 1 if user_data[1] == 0 else 0
-            await db_update_user(
+            await db_update(
                 arr_set=arr_set,
                 arr_where=user_id,
                 sql_update="settings",
@@ -230,7 +230,7 @@ async def cb_settings(callback: CallbackQuery) -> None:
             await callback.answer(phrases[f'changesWillTakeEffect-{l_code}'])
         case "ishraq":
             arr_set = 1 if user_data[2] == 0 else 0
-            await db_update_user(
+            await db_update(
                 arr_set=arr_set,
                 arr_where=user_id,
                 sql_update="settings",
@@ -238,7 +238,7 @@ async def cb_settings(callback: CallbackQuery) -> None:
             )
         case "shuruq":
             arr_set = 1 if user_data[3] == 0 else 0
-            await db_update_user(
+            await db_update(
                 arr_set=arr_set,
                 arr_where=user_id,
                 sql_update="settings",
@@ -246,7 +246,7 @@ async def cb_settings(callback: CallbackQuery) -> None:
             ) 
         case "salah":
             arr_set = 1 if user_data[5] == 0 else 0
-            await db_update_user(
+            await db_update(
                 arr_set=arr_set,
                 arr_where=user_id,
                 sql_update="settings",
@@ -255,7 +255,7 @@ async def cb_settings(callback: CallbackQuery) -> None:
 
         case "language":
             arr_set = "en" if user_data[6] == "ru" else "ru"
-            await db_update_user(
+            await db_update(
                 arr_set=arr_set,
                 arr_where=user_id,
                 sql_update="settings",
@@ -268,7 +268,7 @@ async def cb_settings(callback: CallbackQuery) -> None:
             )
         case "statistics":
             arr_set = 1 if user_data[4] == 0 else 0
-            await db_update_user(
+            await db_update(
                 arr_set=arr_set,
                 arr_where=user_id,
                 sql_update="settings",

@@ -4,7 +4,7 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from database import db_read_user, db_get_language
+from database import db_read, db_get_language
 from app.localization import phrases
 
 
@@ -76,7 +76,7 @@ async def kb_settings_pg1(user_id: int) -> InlineKeyboardMarkup:
     inline_keyboard = InlineKeyboardBuilder()
     l_code = await db_get_language(user_id)
 
-    user_data = await db_read_user(
+    user_data = await db_read(
         arr=user_id,
         sql_from="settings",
         sql_select="madhab, ishraq, shuruq, salah"
@@ -115,7 +115,7 @@ async def kb_settings_pg2(user_id: int) -> InlineKeyboardMarkup:
     inline_keyboard = InlineKeyboardBuilder()
     l_code = await db_get_language(user_id)
 
-    user_data = await db_read_user(
+    user_data = await db_read(
         arr=user_id,
         sql_from="settings",
         sql_select="statistics"
